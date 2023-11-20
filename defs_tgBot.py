@@ -7,6 +7,8 @@ from telebot.types import MessageEntity
 import os
 import sys
 import telebot
+from telebot import types # для указание типов
+# import config
 import speech_recognition
 from pydub import AudioSegment
 from PIL import Image, ImageEnhance, ImageFilter
@@ -102,8 +104,47 @@ def download_file(bot, file_id):
 @bot.message_handler(commands=['start'])
 def say_hi(message):
     # Функция, отправляющая "Привет" в ответ на команду /start
-    bot.send_message(message.chat.id, 'Привет')
+    # bot.send_message(message.chat.id, 'Привет')
+    # markup = types.InlineKeyboardMarkup()
+    # button1 = types.InlineKeyboardButton("Сайт Хабр", url='https://habr.com/ru/all/')
+    # markup.add(button1)
+    # bot.send_message(message.chat.id, "Привет, {0.first_name}! Нажми на кнопку и перейди на сайт)".format(message.from_user), reply_markup=markup)
+    #
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    btn1 = types.KeyboardButton("👋 Поздороваться")
+    btn2 = types.KeyboardButton("❓ Задать вопрос")
+    markup.add(btn1, btn2)
+    bot.send_message(message.chat.id,
+                     text="Привет, {0.first_name}! Я добрый бот habr.com".format(
+                        message.from_user), reply_markup=markup)
 
+@bot.message_handler(content_types=['text'])
+def func(message):
+    if (message.text == "👋 Поздороваться"):
+        bot.send_message(message.chat.id, text=f"Привет, {message.from_user.first_name}!.. \n Рад общению с тобой!)")
+    elif (message.text == "❓ Задать вопрос"):
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        btn1 = types.KeyboardButton("Как меня зовут?")
+        btn2 = types.KeyboardButton("Что я могу?")
+        back = types.KeyboardButton("Назад")
+        markup.add(btn1, btn2, back)
+        bot.send_message(message.chat.id, text="Задай мне вопрос", reply_markup=markup)
+
+    elif (message.text == "Как меня зовут?"):
+        bot.send_message(message.chat.id, "Меня зовут Батяня..")
+
+    elif message.text == "Что я могу?":
+        bot.send_message(message.chat.id, text=" Поприветствовать гостя.\n Ответить на некоторые вопросы."
+                                               "\n Уменьшить размер картинки из файла, который ты мне отправишь.\n Выдать текст твоего звукового сообщения.")
+
+    elif (message.text == "Назад"):
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        button1 = types.KeyboardButton("👋 Поздороваться")
+        button2 = types.KeyboardButton("❓ Задать вопрос")
+        markup.add(button1, button2)
+        bot.send_message(message.chat.id, text="Вы вернулись в главное меню", reply_markup=markup)
+    else:
+        bot.send_message(message.chat.id, text="На такую команду я не запрограммировал..")
 
 @bot.message_handler(content_types=['voice'])
 def transcript(message):
