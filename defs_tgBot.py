@@ -3,7 +3,7 @@ from re import X
 # pip install Pillow
 # pip install python-dotenv
 
-from telebot.types import MessageEntity
+from telebot.types import MessageEntity #
 import os
 import sys
 import telebot
