@@ -3,16 +3,17 @@ from re import X
 # pip install Pillow
 # pip install python-dotenv
 
-from telebot.types import MessageEntity #
+from telebot.types import MessageEntity  #
 import os
 import sys
 import telebot
-from telebot import types # для указание типов
+from telebot import types  # для указание типов
 # import config
 import speech_recognition
 from pydub import AudioSegment
 from PIL import Image, ImageEnhance, ImageFilter
 from dotenv.main import load_dotenv
+from classes import CreateMenu
 
 # Читаем переменные из env
 load_dotenv()
@@ -20,6 +21,10 @@ token = os.environ['TOKEN_TGBOT']  # <<< Ваш токен
 # print(token)
 # sys.exit("Exit 47")
 bot = telebot.TeleBot(token)
+cm = CreateMenu('list_menu.xlsx')
+
+
+# btn_list = cm.select_button('Level_1')
 
 def transform_image(filename):
     # Функция обработки изображения
@@ -29,24 +34,26 @@ def transform_image(filename):
     enhanced_image.save(filename)
     return filename
 
-def resize_image(filename, n:int = 2 ):
+
+def resize_image(filename, n: int = 2):
     # Функция уменьшения размера изображения в n раз
     source_image = Image.open(filename)
     width = source_image.size[0]
     height = source_image.size[1]
-    enhanced_image= source_image.resize((width//n, height//n))
+    enhanced_image = source_image.resize((width // n, height // n))
     enhanced_image.save(filename)
     return filename
+
 
 @bot.message_handler(content_types=['photo'])
 def resend_photo(message):
     # Функция отправки обработанного изображения
     file_id = message.photo[-1].file_id
     x = str(message.caption)
-    try :
-      n = int(x)
-    except :
-      n = 3
+    try:
+        n = int(x)
+    except:
+        n = 3
     filename = download_file(bot, file_id)
 
     # Трансформируем изображение
@@ -104,47 +111,76 @@ def download_file(bot, file_id):
 @bot.message_handler(commands=['start'])
 def say_hi(message):
     # Функция, отправляющая "Привет" в ответ на команду /start
-    # bot.send_message(message.chat.id, 'Привет')
-    # markup = types.InlineKeyboardMarkup()
-    # button1 = types.InlineKeyboardButton("Сайт Хабр", url='https://habr.com/ru/all/')
-    # markup.add(button1)
-    # bot.send_message(message.chat.id, "Привет, {0.first_name}! Нажми на кнопку и перейди на сайт)".format(message.from_user), reply_markup=markup)
-    #
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    btn1 = types.KeyboardButton("👋 Поздороваться")
-    btn2 = types.KeyboardButton("❓ Задать вопрос")
-    markup.add(btn1, btn2)
-    bot.send_message(message.chat.id,
-                     text="Привет, {0.first_name}! Я добрый бот habr.com".format(
-                        message.from_user), reply_markup=markup)
+
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)  # types.InlineKeyboardMarkup()
+    btn_list = cm.select_button('main')
+    btn_list1 = btn_list
+    list_row_button = []
+    for element in btn_list1.items():
+        btn = types.KeyboardButton(element[0])
+        list_row_button.append(btn)
+    # формируем кнопки в строки по 3 штуки
+    i_max = len(list_row_button) // 3 + 1
+    print(i_max)
+    for i in range(i_max):
+        row_button = list_row_button[3 * i:3 + (i * 3)]
+        markup.row(*row_button)
+
+    text = "Привет, {0.first_name}! Я бот помощник.\n Помогаю хорошему разработчику, Павлу Федорову, рассказать о себе.".format(
+        message.from_user)
+    bot.send_message(message.chat.id, text, reply_markup=markup)
+
 
 @bot.message_handler(content_types=['text'])
 def func(message):
-    if (message.text == "👋 Поздороваться"):
-        bot.send_message(message.chat.id, text=f"Привет, {message.from_user.first_name}!.. \n Рад общению с тобой!)")
-    elif (message.text == "❓ Задать вопрос"):
-        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        btn1 = types.KeyboardButton("Как меня зовут?")
-        btn2 = types.KeyboardButton("Что я могу?")
-        back = types.KeyboardButton("Назад")
-        markup.add(btn1, btn2, back)
+    print(message.text)
+    # print(type(cm.data))
+    # print(cm.data)
+    cm_data_dict =  cm.select_button('Level_1')
+    print(cm_data_dict)
+    if (message.text == "Назад"):
+        say_hi(message)
+    elif (message.text == "Задать вопрос"):
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)  # types.InlineKeyboardMarkup()
+        btn_list = cm_data_dict # здесь подумать
+        btn_list1 = btn_list
+        list_row_button = []
+        for element in btn_list1.items():
+            btn = types.KeyboardButton(element[0])
+            list_row_button.append(btn)
+        # формируем кнопки в строки по 3 штуки
+        i_max = len(list_row_button) // 3 + 1
+        print(i_max)
+        for i in range(i_max):
+            row_button = list_row_button[3 * i:3 + (i * 3)]
+            markup.row(*row_button)
         bot.send_message(message.chat.id, text="Задай мне вопрос", reply_markup=markup)
-
+    elif (message.text == "Фото"):
+        photos_to_send = open('Fedorov_P_21.jpg', 'rb')
+        bot.send_photo(message.chat.id, photos_to_send)
+        # bot.sendDocument(chat_id=chat_id, document=open(file, 'rb'))
+        # bot.send_document(message.chat.id, media = photos_to_send)
+        # bot.send_document(message.chat.id, "FILEID")
+    elif (message.text == "Файлы с резюме"):
+        doc_to_send = open('Pavel_Fedorov_Staff_eng.pdf', 'rb')
+        # bot.send_photo(message.chat.id, photos_to_send)
+        bot.send_document(chat_id=message.chat.id, document=doc_to_send)
     elif (message.text == "Как меня зовут?"):
         bot.send_message(message.chat.id, "Меня зовут Батяня..")
 
     elif message.text == "Что я могу?":
         bot.send_message(message.chat.id, text=" Поприветствовать гостя.\n Ответить на некоторые вопросы."
                                                "\n Уменьшить размер картинки из файла, который ты мне отправишь.\n Выдать текст твоего звукового сообщения.")
+    elif (message.text in cm_data_dict):
+        text = cm_data_dict[message.text]
+        bot.send_message(message.chat.id, text)
 
-    elif (message.text == "Назад"):
-        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        button1 = types.KeyboardButton("👋 Поздороваться")
-        button2 = types.KeyboardButton("❓ Задать вопрос")
-        markup.add(button1, button2)
-        bot.send_message(message.chat.id, text="Вы вернулись в главное меню", reply_markup=markup)
+    elif (message.text in cm_data_dict):
+        text = cm_data_dict[message.text]
+        bot.send_message(message.chat.id, text)
     else:
         bot.send_message(message.chat.id, text="На такую команду я не запрограммировал..")
+
 
 @bot.message_handler(content_types=['voice'])
 def transcript(message):
@@ -154,8 +190,6 @@ def transcript(message):
     bot.send_message(message.chat.id, text)
 
 
-
 # Запускаем бота. Он будет работать до тех пор, пока работает ячейка (крутится значок слева).
 # Для остановки бота надо прервать выполнение программы. Ctrl-C или по другому.
 bot.polling()
-
