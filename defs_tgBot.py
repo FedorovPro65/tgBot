@@ -133,7 +133,7 @@ def say_hi(message):
         row_button = list_row_button[3 * i:3 + (i * 3)]
         markup.row(*row_button)
 
-    text = "Привет, {0.first_name}! Я бот помощник.\n Помогаю хорошему разработчику, Павлу Федорову, рассказать о себе.".format(
+    text = "Привет, {0.first_name}! Я бот помощник.\n Помогаю хорошему разработчику, Павлу Федорову, рассказать о себе тем, кому он может быть полезен.\n Нажимайте кнопки для получения информации.\n Нажав - узнать больше, Вы попадете в более расширенное меню".format(
         message.from_user)
     bot.send_message(message.chat.id, text, reply_markup=markup)
 
@@ -167,15 +167,17 @@ def func(message):
         photos_to_send = open('Fedorov_P_21.jpg', 'rb')
         bot.send_photo(message.chat.id, photos_to_send)
 
-    elif (message.text == "Отзывы"):
-        photos_to_send = open('Otz1.jpg', 'rb')
-        bot.send_photo(message.chat.id, photos_to_send)
+    # elif (message.text == "Отзывы"):
+    #     photos_to_send = open('Otz1.jpg', 'rb')
+    #     bot.send_photo(message.chat.id, photos_to_send)
 
+    # Доработать , добавив признак обработки (jpg, pdf), чтобы обработка происходила без hard кода.
+    # Имя файла и тип обработки читался из словаря на основе настроечного файла XLS.
     elif (message.text == "Обучение, курсы"):
         photos_to_send = open('refresher_courses.jpg', 'rb')
         bot.send_photo(message.chat.id, photos_to_send)
 
-    elif (message.text == "Файлы с резюме"):
+    elif (message.text == "Файл с резюме"):
         doc_to_send = open('Pavel_Fedorov_Staff_eng.pdf', 'rb')
         bot.send_document(chat_id=message.chat.id, document=doc_to_send)
 

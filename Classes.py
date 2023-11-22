@@ -7,8 +7,6 @@ class CreateMenu:
         # self.__db_path = os.getcwd()
         # self.db_name = os.path.join(self.__db_path, 'database.db')
         self.filename = filename # 'list_menu.xlsx'
-        # Load the xlsx file
-        # self.excel_data = pd.read_excel(filename)
         # Read the values of the file in the dataframe
         self.data = pd.DataFrame(pd.read_excel(filename), columns=['type_menu', 'order_num', 'btn_name', 'btn_callback'])
 
@@ -19,19 +17,13 @@ class CreateMenu:
         result = dict()
         data = self.data
         df = data[data['type_menu'] == type_menu][['btn_name', 'btn_callback']].head(13)
-        print('---', type(df), df.count())
-        print(df)
+        # print('---', type(df), df.count())
+        # print(df)
+
         df = df.reset_index()  # make sure indexes pair with number of rows
         for index, row in df.iterrows():
-            print('----', row['btn_name'], '--', row['btn_callback'])
+            # print('----', row['btn_name'], '--', row['btn_callback'])
             result[row['btn_name']] = row['btn_callback']
+        print('Словарь для меню', type_menu, 'создан')
         return result
 
-    # def create_menu(self, type_menu: str) -> types.InlineKeyboardMarkup:
-    #     '''Создаём меню для TG бота'''
-    #     markup = types.InlineKeyboardMarkup()
-    #     btn_list = self.__select_button(type_menu)
-    #     for element in btn_list.items():
-    #           btn = types.InlineKeyboardButton(text=element[0], callback_data=element[1])
-    #           markup.add(btn)
-    #     return btn_list
