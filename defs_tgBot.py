@@ -14,6 +14,9 @@ from pydub import AudioSegment
 from PIL import Image, ImageEnhance, ImageFilter
 from dotenv.main import load_dotenv
 from classes import CreateMenu
+from datetime import datetime
+import locale
+locale.setlocale(locale.LC_ALL, "")
 
 # Читаем переменные из env
 load_dotenv()
@@ -22,6 +25,8 @@ token = os.environ['TOKEN_TGBOT']  # <<< Ваш токен
 # sys.exit("Exit 47")
 bot = telebot.TeleBot(token)
 cm = CreateMenu('list_menu.xlsx')
+btn_list1 = cm.select_button('main')
+cm_data_dict = cm.select_button('Level_1')
 
 
 # btn_list = cm.select_button('Level_1')
@@ -111,17 +116,19 @@ def download_file(bot, file_id):
 @bot.message_handler(commands=['start'])
 def say_hi(message):
     # Функция, отправляющая "Привет" в ответ на команду /start
-
+    now = datetime.now()
+    dt_in= now.strftime("%I:%M %d %B %Y (%A)")
+    print(dt_in, ';', message.from_user.id, ';', message.from_user.first_name)
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)  # types.InlineKeyboardMarkup()
-    btn_list = cm.select_button('main')
-    btn_list1 = btn_list
+    # btn_list = cm.select_button('main')
+    # btn_list1 = btn_list
     list_row_button = []
     for element in btn_list1.items():
         btn = types.KeyboardButton(element[0])
         list_row_button.append(btn)
     # формируем кнопки в строки по 3 штуки
     i_max = len(list_row_button) // 3 + 1
-    print(i_max)
+    # print(i_max)
     for i in range(i_max):
         row_button = list_row_button[3 * i:3 + (i * 3)]
         markup.row(*row_button)
@@ -136,16 +143,16 @@ def func(message):
     print(message.text)
     # print(type(cm.data))
     # print(cm.data)
-    cm_data_dict =  cm.select_button('Level_1')
-    print(cm_data_dict)
+    # cm_data_dict = cm.select_button('Level_1')
+    # print(cm_data_dict)
     if (message.text == "Назад"):
         say_hi(message)
-    elif (message.text == "Задать вопрос"):
+    elif (message.text == "Узнать больше"):
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)  # types.InlineKeyboardMarkup()
         btn_list = cm_data_dict # здесь подумать
-        btn_list1 = btn_list
+        # btn_list1 = btn_list
         list_row_button = []
-        for element in btn_list1.items():
+        for element in btn_list.items():
             btn = types.KeyboardButton(element[0])
             list_row_button.append(btn)
         # формируем кнопки в строки по 3 штуки
@@ -154,30 +161,28 @@ def func(message):
         for i in range(i_max):
             row_button = list_row_button[3 * i:3 + (i * 3)]
             markup.row(*row_button)
-        bot.send_message(message.chat.id, text="Задай мне вопрос", reply_markup=markup)
+        bot.send_message(message.chat.id, text="Нажми кнопку, чтобы получить информацию по интересующему вопросу.", reply_markup=markup)
+
     elif (message.text == "Фото"):
         photos_to_send = open('Fedorov_P_21.jpg', 'rb')
         bot.send_photo(message.chat.id, photos_to_send)
-        # bot.sendDocument(chat_id=chat_id, document=open(file, 'rb'))
-        # bot.send_document(message.chat.id, media = photos_to_send)
-        # bot.send_document(message.chat.id, "FILEID")
+
+    elif (message.text == "Отзывы"):
+        photos_to_send = open('Otz1.jpg', 'rb')
+        bot.send_photo(message.chat.id, photos_to_send)
+
+    elif (message.text == "Обучение, курсы"):
+        photos_to_send = open('refresher_courses.jpg', 'rb')
+        bot.send_photo(message.chat.id, photos_to_send)
+
     elif (message.text == "Файлы с резюме"):
         doc_to_send = open('Pavel_Fedorov_Staff_eng.pdf', 'rb')
-        # bot.send_photo(message.chat.id, photos_to_send)
         bot.send_document(chat_id=message.chat.id, document=doc_to_send)
-    elif (message.text == "Как меня зовут?"):
-        bot.send_message(message.chat.id, "Меня зовут Батяня..")
-
-    elif message.text == "Что я могу?":
-        bot.send_message(message.chat.id, text=" Поприветствовать гостя.\n Ответить на некоторые вопросы."
-                                               "\n Уменьшить размер картинки из файла, который ты мне отправишь.\n Выдать текст твоего звукового сообщения.")
-    elif (message.text in cm_data_dict):
-        text = cm_data_dict[message.text]
-        bot.send_message(message.chat.id, text)
 
     elif (message.text in cm_data_dict):
         text = cm_data_dict[message.text]
         bot.send_message(message.chat.id, text)
+
     else:
         bot.send_message(message.chat.id, text="На такую команду я не запрограммировал..")
 
