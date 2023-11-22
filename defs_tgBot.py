@@ -14,10 +14,21 @@ from pydub import AudioSegment
 from PIL import Image, ImageEnhance, ImageFilter
 from dotenv.main import load_dotenv
 from classes import CreateMenu
-from datetime import datetime
+from datetime import datetime, timedelta
+import time
 import locale
-locale.setlocale(locale.LC_ALL, "")
 
+# Проверяем локальные настройки и часовой пояс, может отличаться на разных серверах, а нам нужно выводить Московское время
+locale.setlocale(locale.LC_ALL, "")
+lc = locale.getlocale()
+if time.tzname[0] == 'UTC':
+    my_timedelta = 3
+else:
+    my_timedelta = 0
+print(lc,time.tzname[0])
+now = datetime.now() + timedelta(hours=my_timedelta)
+dt_in = now.strftime("%H:%M %d.%m.%Y")
+print('===========  тг бот запущен', dt_in, '===========')
 # Читаем переменные из env
 load_dotenv()
 token = os.environ['TOKEN_TGBOT']  # <<< Ваш токен
@@ -116,8 +127,8 @@ def download_file(bot, file_id):
 @bot.message_handler(commands=['start'])
 def say_hi(message):
     # Функция, отправляющая "Привет" в ответ на команду /start
-    now = datetime.now()
-    dt_in= now.strftime("%I:%M %d %B %Y (%A)")
+    now = datetime.now() + timedelta(hours=my_timedelta)
+    dt_in = now.strftime("%H:%M %d.%m.%Y")
     print(dt_in, ';', message.from_user.id, ';', message.from_user.first_name)
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)  # types.InlineKeyboardMarkup()
     # btn_list = cm.select_button('main')
@@ -149,7 +160,7 @@ def func(message):
         say_hi(message)
     elif (message.text == "Узнать больше"):
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)  # types.InlineKeyboardMarkup()
-        btn_list = cm_data_dict # здесь подумать
+        btn_list = cm_data_dict  # здесь подумать
         # btn_list1 = btn_list
         list_row_button = []
         for element in btn_list.items():
@@ -161,7 +172,8 @@ def func(message):
         for i in range(i_max):
             row_button = list_row_button[3 * i:3 + (i * 3)]
             markup.row(*row_button)
-        bot.send_message(message.chat.id, text="Нажми кнопку, чтобы получить информацию по интересующему вопросу.", reply_markup=markup)
+        bot.send_message(message.chat.id, text="Нажми кнопку, чтобы получить информацию по интересующему вопросу.",
+                         reply_markup=markup)
 
     elif (message.text == "Фото"):
         photos_to_send = open('Fedorov_P_21.jpg', 'rb')
