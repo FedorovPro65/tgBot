@@ -1,4 +1,4 @@
-from re import X
+
 # pip install pyTelegramBotAPI SpeechRecognition pydub
 # pip install Pillow
 # pip install python-dotenv
@@ -6,26 +6,37 @@ from re import X
 # from telebot.types import MessageEntity  #
 import os
 # import sys
-import telebot
-from telebot import types  # для указание типов
+# import telebot
+# from telebot import types  # для указание типов
 # import config
 # import speech_recognition
 # from pydub import AudioSegment
 # from PIL import Image, ImageEnhance, ImageFilter
 from dotenv.main import load_dotenv
 
-import classes
-from classes import CreateMenu, user_add, get_user
+from classes import *
+# from classes import CreateMenu, user_add, get_user
 from datetime import datetime, timedelta
 import time
 import locale
 
 
-# Создаем глобальную переменную - множество,  состоящем из словарей вошедших в тг бот пользователей по их id.
-# (id: ( FirstName, DateTimeFirst, DataTimeLast, Language))
+# Добавить логирование сообщений, отправку письма, в случае сбоя.
+import logging
 
+LOG_FORMAT = "%(asctime)s ; %(levelname)s ; %(message)s"
+logging.basicConfig(filename='./tmp/log1.txt', level=logging.ERROR, format=LOG_FORMAT, filemode='w')
+logger = logging.getLogger()
+logger.info('Test')
 
-# Проверяем локальные настройки и часовой пояс, может отличаться на разных серверах, а нам нужно выводить Московское время
+# Создаем глобальную переменную - словарь,  состоящий из id пользователя и экземпляров класса BotUser,
+# вошедших в тг бот пользователей по их id.
+# {id: (BotUser = id, FirstName, DateTimeFirst, DataTimeLast, Language)}
+# Эта конструкция нужна, чтобы при одновременной работе нескольких пользователей,
+# программа обрабатывала текущие индивидуальные языковые настройки.
+
+# Проверяем локальные настройки и часовой пояс, может отличаться на разных серверах
+# , а нам нужно выводить Московское время
 locale.setlocale(locale.LC_ALL, "")
 lc = locale.getlocale()
 if time.tzname[0] == 'UTC':
@@ -35,7 +46,9 @@ else:
 print(lc, time.tzname[0])
 now = datetime.now() + timedelta(hours=my_timedelta)
 dt_in = now.strftime("%H:%M %d.%m.%Y")
-print('===========  тг бот запущен', dt_in, '===========')
+stpri = f'===========  тг бот запущен {dt_in} ==========='
+print(stpri)
+Ptlf(stpri)
 # Читаем переменные из env
 load_dotenv()
 token = os.environ['TOKEN_TGBOT']  # <<< Ваш токен
@@ -62,27 +75,31 @@ language = 'RUS'
 @bot.message_handler(commands=['start'])
 def say_hi(message):
     # Функция, отправляющая "Привет" в ответ на команду /start
+
+    global users_dict
     now = datetime.now() + timedelta(hours=my_timedelta)
     dt_in = now.strftime("%H:%M %d.%m.%Y")
-    print(dt_in, ';', message.from_user.id, ';', message.from_user.first_name)
-
-
-    # global btn_list1
-    # global cm_data_dict
+    user_id = message.from_user.id
+    # print(user_id)
+    # print(users_dict)
+    if user_id not in users_dict:
+        str_to = f'--- start ---  {dt_in} ; {user_id} ; {message.from_user.first_name}'
+        Ptlf(str_to)
+        print('--- start --- ', dt_in, ';', user_id, ';', message.from_user.first_name)
 
     # Обработка поступившего user.id
-    global users_dict
-    cur_user = classes.get_user(message.from_user.id, users_dict, message.from_user.first_name)
-    print('--- say_hi --- ',cur_user)
-    classes.user_add(cur_user, users_dict)
-    print(users_dict)
-    print(users_dict[message.from_user.id])
+
+    cur_user = get_user(user_id, users_dict, message.from_user.first_name)
+    # print('--- say_hi --- ',cur_user)
+    user_add(cur_user, users_dict)
+    # print(users_dict)
+    # print(users_dict[message.from_user.id])
     cur_language = cur_user.Language
     cur_user.UpdateLanguage(cur_language)
     cur_user.UpdateDateTimeLast()
-    classes.user_add(cur_user, users_dict)
+    user_add(cur_user, users_dict)
 
-    print(message.from_user.id, users_dict[message.from_user.id].Language)
+    # print(dt_in, message.from_user.id, users_dict[message.from_user.id].Language)
 
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)  # types.InlineKeyboardMarkup()
 
@@ -120,7 +137,7 @@ def say_hi(message):
 
 @bot.message_handler(content_types=['text'])
 def func(message):
-    print(message.text)
+    # print('----- message.text=', message.text)
     # print(type(cm.data))
     # print(cm.data)
     # cm_data_dict = cm.select_button('Level_1')
@@ -130,9 +147,9 @@ def func(message):
     # global btn_list1
     # global cm_data_dict
 
-    cur_user = classes.get_user(message.from_user.id, users_dict, message.from_user.first_name)
-    print('--- func 1---', cur_user, cur_user.Language, message.from_user.id)
-    classes.user_add(cur_user, users_dict)
+    cur_user = get_user(message.from_user.id, users_dict, message.from_user.first_name)
+    # print('--- func 1---', cur_user, cur_user.Language, message.from_user.id)
+    user_add(cur_user, users_dict)
     cur_language = cur_user.Language
 
 
@@ -156,7 +173,7 @@ def func(message):
             list_row_button.append(btn)
         # формируем кнопки в строки по 3 штуки
         i_max = len(list_row_button) // 3 + 1
-        print(i_max)
+        # print(i_max)
         for i in range(i_max):
             row_button = list_row_button[3 * i:3 + (i * 3)]
             markup.row(*row_button)
@@ -166,16 +183,16 @@ def func(message):
     elif (message.text == "RUS"):
         cur_language = 'RUS'
         cur_user.UpdateLanguage(cur_language)
-        classes.user_add(cur_user, users_dict)
-        print('--- func 2 ---', cur_user, cur_user.Language, message.from_user.id)
+        user_add(cur_user, users_dict)
+        # print('--- func 2 ---', cur_user, cur_user.Language, message.from_user.id)
         cm_data_dict = cm_data_dict_RUS
         say_hi(message)
 
     elif (message.text == "ENG"):
         cur_language = 'ENG'
         cur_user.UpdateLanguage(cur_language)
-        classes.user_add(cur_user, users_dict)
-        print('--- func 3 ---', cur_user, cur_user.Language, message.from_user.id)
+        user_add(cur_user, users_dict)
+        # print('--- func 3 ---', cur_user, cur_user.Language, message.from_user.id)
         cm_data_dict = cm_data_dict_ENG
         say_hi(message)
 
@@ -202,17 +219,17 @@ def func(message):
         bot.send_message(message.chat.id, text)
 
     else:
-        bot.send_message(message.chat.id, text="На такую команду я не запрограммировал..")
+        bot.send_message(message.chat.id, text="I am not programmed for such a command."
+                                               "\nTo get an answer, click any button below...")
 
-
-@bot.message_handler(content_types=['voice'])
-def transcript(message):
-    # Функция, отправляющая текст в ответ на голосовое
-    filename = download_file(bot, message.voice.file_id)
-    text = recognize_speech(filename)
-    bot.send_message(message.chat.id, text)
-
-
+try:
+    b=3/0
+# except:
+except Exception as e:
+    logging.error(type(e).__name__, exc_info=True)
 # Запускаем бота. Он будет работать до тех пор, пока работает ячейка (крутится значок слева).
 # Для остановки бота надо прервать выполнение программы. Ctrl-C или по другому.
-bot.infinity_polling()
+# try:
+bot.infinity_polling(none_stop=True)
+# except Exception as e:
+#     logging.error(type(e).__name__, exc_info=True)

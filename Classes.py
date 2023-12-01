@@ -5,7 +5,6 @@ from typing import List
 from datetime import datetime
 import time
 
-
 class BotUser:
     def __init__(self, UserId, UserName):
         self.UserId = UserId
@@ -17,12 +16,12 @@ class BotUser:
     def UpdateDateTimeLast(self):
         # Присваивает текущее значение дата время для параметра DateTimeLast
         self.DateTimeLast = datetime.now()
-        print(self.DateTimeLast)
+        # print(self.DateTimeLast)
 
     def UpdateLanguage(self, Language: str):
         # Присваивает текущее значение дата время для параметра DateTimeLast
         self.Language = Language
-        print(self.Language)
+        # print(self.Language)
 
     def UpdateOLdUser(self, UsersDict:dict, user_id: int):
 
@@ -52,7 +51,10 @@ def get_user(user_id:int, Mydict: dict, user_name = 'None'):
         my_user = BotUser(user_id, user_name) # создаем нового
     return my_user
 
-
+def Ptlf(str_to_log_file:str):
+    with open("log.txt", "a", encoding='utf-8') as f:
+        str_to_log_file = str_to_log_file + '\n'
+        sf = f.write(str_to_log_file)
 class CreateMenu:
     def __init__(self, filename):
         '''Конструктор класса. Создает DataFrame с данными для кнопок меню.'''
@@ -89,19 +91,32 @@ if __name__ == '__main__':
     # cm = CreateMenu('list_menu.xlsx')
     # btn_list1 = cm.select_button('Level_1','ENG')
     # print(btn_list1)
-    d1 = dict()
-    u1 = BotUser(12, 'Ivan')
-    user_add(u1, d1)
-    time.sleep(3)
-    u1.UpdateDateTimeLast()
-    user_add(u1, d1)
-    u1 = BotUser(14, 'Ani')
-    u1.UpdateLanguage('ENG')
-    user_add(u1, d1)
-    for d in d1.keys():
-        print(d1[d])
-    print(d1[14].Language)
-    cur_user = get_user(12,d1)
-    print(cur_user.UserId,cur_user.Language)
+
+    # создаем экземпляр объекта
+    # указываем имя лога и
+    # PRINT_TO_FILE = True - вывод в файл,
+    # иначе - на консоль
+    # log = mylogger('LOGFILE.txt', True)
+    #
+    # # переопределяем адрес функции print()
+    # # на адрес метода нашего логгера
+    # print = log.printml
+    #
+    # d1 = dict()
+    # u1 = BotUser(12, 'Ivan')
+    # user_add(u1, d1)
+    # time.sleep(3)
+    # u1.UpdateDateTimeLast()
+    # user_add(u1, d1)
+    # u1 = BotUser(14, 'Ani')
+    # u1.UpdateLanguage('ENG')
+    # user_add(u1, d1)
+    # for d in d1.keys():
+    #     print(d1[d])
+    # print(d1[14].Language)
+    # cur_user = get_user(12,d1)
+    # print(cur_user.UserId,cur_user.Language)
+
+    Ptlf('jfjfj')
 
 
